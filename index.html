@@ -3,46 +3,40 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RPG Maker Chat - Medieval</title>
+<title>RPG Maker Chat - Medieval Aperfeiçoado</title>
 <style>
-/* Fontes e cores */
 @import url('https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap');
 body {
   margin:0; font-family:'MedievalSharp', cursive; background:#1a1300; color:#f0e6d2; display:flex; flex-direction:column; height:100vh;
 }
 header { background:#3d2c00; padding:1rem; text-align:center; font-size:1.8rem; color:#ffd700; text-shadow: 2px 2px #000; }
 main { flex:1; display:flex; overflow:hidden; border-top:2px solid #654321; border-bottom:2px solid #654321; }
-/* Sidebar */
 #sidebar { width:220px; background:#2b1f00; padding:1rem; overflow-y:auto; border-right:2px solid #654321; }
 #sidebar h3 { margin-top:0; color:#ffd700; text-shadow:1px 1px #000; }
-#tabs button, #chatList button { width:100%; margin:0.2rem 0; padding:0.5rem; border:none; border-radius:5px; background:#654321; color:#ffd700; cursor:pointer; font-weight:bold; }
-#tabs button.active, #chatList button.active { background:#ffb800; color:#000; }
-/* Content area */
+#chatList button, #tabs button { width:100%; margin:0.2rem 0; padding:0.5rem; border:none; border-radius:5px; background:#654321; color:#ffd700; cursor:pointer; font-weight:bold; }
+#chatList button.active, #tabs button.active { background:#ffb800; color:#000; }
 #content { flex:1; display:flex; flex-direction:column; background:#1a1300; padding:0.5rem; }
 #messages, #inventory, #privateMsgs { flex:1; padding:1rem; overflow-y:auto; border:2px solid #654321; border-radius:10px; background:#2b1f00; margin-bottom:0.5rem; }
-.message { margin-bottom:0.5rem; padding:0.5rem 1rem; border-radius:10px; max-width:70%; box-shadow:1px 1px 5px #000; }
+.message { margin-bottom:0.5rem; padding:0.5rem 1rem; border-radius:10px; max-width:70%; box-shadow:1px 1px 5px #000; word-wrap: break-word; }
 .me { background:#7f4f24; color:#fff; align-self:flex-end; }
 .system { background:#ffd700; color:#000; font-style:italic; text-align:center; }
 form { display:flex; padding:0.5rem; background:#3d2c00; border-radius:10px; }
 input[type="text"] { flex:1; padding:0.5rem; border:none; border-radius:20px; }
 button { margin-left:0.5rem; padding:0.5rem 1rem; border:none; border-radius:20px; background:#ffb800; color:#000; cursor:pointer; font-weight:bold; }
 .hidden { display:none; }
-/* Login/Register */
 #login,#register,#charCreate,#chatInterface { position:absolute; top:0; left:0; right:0; bottom:0; display:flex; flex-direction:column; justify-content:center; align-items:center; background:rgba(26,19,0,0.95); }
 input,select { padding:0.5rem; margin:0.3rem 0; border-radius:5px; border:none; }
 h2 { color:#ffd700; text-shadow:1px 1px #000; }
-/* Inventory items */
 .item { background:#654321; padding:0.5rem; margin:0.2rem 0; border-radius:5px; color:#ffd700; }
-/* Scrollbar */
 #messages::-webkit-scrollbar,#inventory::-webkit-scrollbar,#privateMsgs::-webkit-scrollbar,#sidebar::-webkit-scrollbar { width:8px; }
 #messages::-webkit-scrollbar-thumb,#inventory::-webkit-scrollbar-thumb,#privateMsgs::-webkit-scrollbar-thumb,#sidebar::-webkit-scrollbar-thumb { background:#7f4f24; border-radius:4px; }
+.avatar { width:24px; height:24px; border-radius:50%; vertical-align:middle; margin-right:5px; }
 </style>
 </head>
 <body>
 
-<header>🏰 RPG Maker Chat - Medieval</header>
+<header>🏰 RPG Maker Chat - Medieval Aperfeiçoado</header>
 
-<!-- Login/Register -->
 <div id="login">
   <h2>Login</h2>
   <input type="email" id="loginEmail" placeholder="Email">
@@ -61,7 +55,6 @@ h2 { color:#ffd700; text-shadow:1px 1px #000; }
   <p><a href="#" onclick="showLogin()">Voltar ao login</a></p>
 </div>
 
-<!-- Character Creation -->
 <div id="charCreate" class="hidden">
   <h2>Criar Personagem</h2>
   <input type="text" id="charName" placeholder="Nome do personagem">
@@ -73,7 +66,6 @@ h2 { color:#ffd700; text-shadow:1px 1px #000; }
   <button onclick="createCharacter()">Criar Personagem</button>
 </div>
 
-<!-- Main Chat Interface -->
 <div id="chatInterface" class="hidden">
   <div id="sidebar">
     <h3>Chats</h3>
@@ -99,30 +91,26 @@ h2 { color:#ffd700; text-shadow:1px 1px #000; }
 </div>
 
 <script>
-// LocalStorage helpers
-function saveData(key,val){ localStorage.setItem(key,JSON.stringify(val)); }
-function loadData(key){ return JSON.parse(localStorage.getItem(key)||'null'); }
+// Storage helpers
+function saveData(k,v){ localStorage.setItem(k,JSON.stringify(v)); }
+function loadData(k){ return JSON.parse(localStorage.getItem(k)||'null'); }
 
 // Globals
-let currentUser=null, currentChat=null, currentCharacter=null, lastBauTime=0;
-
-// Chats
+let currentUser=null,currentChat=null,currentCharacter=null,lastBauTime=0;
 const chats=[
   {id:'off', name:'Off Chat', type:'off', lore:'Chat geral'},
   {id:'forest', name:'Floresta Encantada', type:'rpg', lore:'Elfos, fadas e criaturas mágicas.'},
   {id:'castle', name:'Castelo Negro', type:'rpg', lore:'Corredores escuros e mistérios.'},
   {id:'cave', name:'Caverna Abissal', type:'rpg', lore:'Tesouros e monstros ancestrais.'}
 ];
-
-// Guilds
 const guilds=[{name:'Ordem dos Magos', tag:'MAG', leaders:['admin']}];
 
 // Tabs
 function showTab(tab,e){ 
   ['messages','inventory','privateMsgs'].forEach(id=>document.getElementById(id).classList.add('hidden'));
   if(tab==='chat') document.getElementById('messages').classList.remove('hidden');
-  else if(tab==='inventory') { document.getElementById('inventory').classList.remove('hidden'); loadInventory(); }
-  else { document.getElementById('privateMsgs').classList.remove('hidden'); loadPrivateMsgs(); }
+  else if(tab==='inventory'){ document.getElementById('inventory').classList.remove('hidden'); loadInventory(); }
+  else document.getElementById('privateMsgs').classList.remove('hidden'); loadPrivateMsgs();
   document.querySelectorAll('#tabs button').forEach(b=>b.classList.remove('active'));
   e.target.classList.add('active');
 }
@@ -132,10 +120,7 @@ function showRegister(){ document.getElementById('login').classList.add('hidden'
 function showLogin(){ document.getElementById('register').classList.add('hidden'); document.getElementById('login').classList.remove('hidden'); }
 
 function register(){
-  const nick=document.getElementById('regNick').value;
-  const email=document.getElementById('regEmail').value;
-  const pass=document.getElementById('regPass').value;
-  const avatar=document.getElementById('regAvatar').files[0];
+  const nick=document.getElementById('regNick').value,email=document.getElementById('regEmail').value,pass=document.getElementById('regPass').value,avatar=document.getElementById('regAvatar').files[0];
   if(!nick||!email||!pass){ alert('Preencha todos os campos'); return; }
   const users=loadData('users')||[];
   if(users.find(u=>u.email===email)){ alert('Email já registrado'); return; }
@@ -145,107 +130,88 @@ function register(){
 }
 
 function login(){
-  const email=document.getElementById('loginEmail').value;
-  const pass=document.getElementById('loginPass').value;
-  const users=loadData('users')||[];
-  const user=users.find(u=>u.email===email && u.pass===pass);
+  const email=document.getElementById('loginEmail').value,pass=document.getElementById('loginPass').value;
+  const users=loadData('users')||[],user=users.find(u=>u.email===email&&u.pass===pass);
   if(!user){ alert('Email ou senha incorretos'); return; }
   currentUser=user; showChatList();
 }
 
-// Chat selection
+// Show chat list
 function showChatList(){
-  document.getElementById('login').classList.add('hidden');
-  document.getElementById('register').classList.add('hidden');
+  document.getElementById('login').classList.add('hidden'); document.getElementById('register').classList.add('hidden');
   const container=document.getElementById('chatList'); container.innerHTML='';
   chats.forEach(c=>{
     const btn=document.createElement('button'); btn.textContent=c.name;
-    btn.onclick=()=>enterChat(c);
+    btn.onclick=()=>{ enterChat(c); document.querySelectorAll('#chatList button').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); };
     container.appendChild(btn);
   });
   loadGuilds();
 }
 
+// Enter chat
 function enterChat(chat){
   currentChat=chat;
-  if(chat.type==='rpg'){
-    const charData=loadData(`char_${chat.id}_${currentUser.email}`);
-    if(!charData){ showCharacterCreation(chat); return; }
+  if(chat.type==='rpg'){ const charData=loadData(`char_${chat.id}_${currentUser.email}`);
+    if(!charData){ document.getElementById('chatInterface').classList.add('hidden'); document.getElementById('charCreate').classList.remove('hidden'); return; }
     currentCharacter=charData;
   } else currentCharacter={name:currentUser.nick,avatar:currentUser.avatar,xp:0};
-  openChatInterface();
+  document.getElementById('chatInterface').classList.remove('hidden'); document.getElementById('charCreate').classList.add('hidden');
+  loadMessages();
 }
 
 // Character creation
-function showCharacterCreation(chat){ document.getElementById('charCreate').classList.remove('hidden'); document.getElementById('chatInterface').classList.add('hidden'); }
 function createCharacter(){
-  const name=document.getElementById('charName').value;
-  const bio=document.getElementById('charBio').value;
+  const name=document.getElementById('charName').value,bio=document.getElementById('charBio').value;
   const avatarFile=document.getElementById('charAvatar').files[0];
   const powers=[document.getElementById('charPower1').value,document.getElementById('charPower2').value,document.getElementById('charPower3').value].filter(p=>p);
   if(!name){ alert('Nome obrigatório'); return; }
   const reader=new FileReader();
-  reader.onload=function(e){
-    const charData={name,bio,avatar:e.target.result,powers,items:[],weapons:[],xp:0};
-    saveData(`char_${currentChat.id}_${currentUser.email}`,charData);
-    currentCharacter=charData;
-    openChatInterface();
+  reader.onload=function(e){ 
+    currentCharacter={name,bio,avatar:e.target.result,powers,items:[],weapons:[],xp:0};
+    saveData(`char_${currentChat.id}_${currentUser.email}`,currentCharacter);
+    document.getElementById('charCreate').classList.add('hidden'); document.getElementById('chatInterface').classList.remove('hidden'); loadMessages();
   };
-  if(avatarFile) reader.readAsDataURL(avatarFile); else { const charData={name,bio,avatar:null,powers,items:[],weapons:[],xp:0}; saveData(`char_${currentChat.id}_${currentUser.email}`,charData); currentCharacter=charData; openChatInterface(); }
-}
-
-// Open chat
-function openChatInterface(){
-  document.getElementById('charCreate').classList.add('hidden');
-  document.getElementById('chatInterface').classList.remove('hidden');
-  loadMessages();
+  if(avatarFile) reader.readAsDataURL(avatarFile); else { currentCharacter={name,bio,avatar:null,powers,items:[],weapons:[],xp:0}; saveData(`char_${currentChat.id}_${currentUser.email}`,currentCharacter); document.getElementById('charCreate').classList.add('hidden'); document.getElementById('chatInterface').classList.remove('hidden'); loadMessages(); }
 }
 
 // Messages
 function loadMessages(){
-  const msgs=loadData(`msgs_${currentChat.id}`)||[];
-  const container=document.getElementById('messages'); container.innerHTML='';
+  const msgs=loadData(`msgs_${currentChat.id}`)||[]; const container=document.getElementById('messages'); container.innerHTML='';
   msgs.forEach(m=>{
     const div=document.createElement('div'); div.classList.add('message');
     if(m.sender==='me') div.classList.add('me');
     if(m.type==='system') div.classList.add('system');
-    div.textContent=m.content;
+    div.innerHTML=(m.avatar?`<img src="${m.avatar}" class="avatar">`:'')+m.content;
     container.appendChild(div);
   });
   container.scrollTop=container.scrollHeight;
 }
 
+// Send message
 function sendMessage(e){
   e.preventDefault();
-  const input=document.getElementById('messageInput');
-  const text=input.value.trim(); if(!text) return;
-  handleCommand(text); input.value='';
+  const input=document.getElementById('messageInput'); const text=input.value.trim();
+  if(!text) return; handleCommand(text); input.value='';
 }
 
 // Commands
 function handleCommand(text){
-  const msgs=loadData(`msgs_${currentChat.id}`)||[];
-  const now=Date.now();
+  const msgs=loadData(`msgs_${currentChat.id}`)||[]; const now=Date.now();
   if(text.startsWith('/openbau')){
     if(now-lastBauTime<10000){ alert('Cooldown 10s'); return; }
-    lastBauTime=now;
-    msgs.push({sender:'system',type:'system',content:'Abrindo baú...'});
-    saveData(`msgs_${currentChat.id}`,msgs); loadMessages();
+    lastBauTime=now; msgs.push({sender:'system',type:'system',content:'Abrindo baú...'}); saveData(`msgs_${currentChat.id}`,msgs); loadMessages();
     setTimeout(()=>{
-      const items=['Espada Lendária','Poção de Mana','Armadura de Ferro'];
-      const item=items[Math.floor(Math.random()*items.length)];
-      currentCharacter.items.push(item); currentCharacter.xp+=10;
-      saveData(`char_${currentChat.id}_${currentUser.email}`,currentCharacter);
-      msgs.push({sender:'system',type:'system',content:`Você ganhou: ${item} (+10 XP)`});
-      saveData(`msgs_${currentChat.id}`,msgs); loadMessages();
+      const items=['Espada Lendária','Poção de Mana','Armadura de Ferro']; const item=items[Math.floor(Math.random()*items.length)];
+      currentCharacter.items.push(item); currentCharacter.xp+=10; saveData(`char_${currentChat.id}_${currentUser.email}`,currentCharacter);
+      msgs.push({sender:'system',type:'system',content:`Você ganhou: ${item} (+10 XP)`}); saveData(`msgs_${currentChat.id}`,msgs); loadMessages();
     },1500); return;
   }
   if(text.startsWith('/roll')){
     const match=text.match(/(\d+)d(\d+)/);
-    if(match){ const n=parseInt(match[1]),sides=parseInt(match[2]); let rolls=[]; for(let i=0;i<n;i++) rolls.push(1+Math.floor(Math.random()*sides)); msgs.push({sender:'system',type:'system',content:`Rolagem: ${rolls.join(', ')} = ${rolls.reduce((a,b)=>a+b,0)}`}); saveData(`msgs_${currentChat.id}`,msgs); loadMessages(); return; }
+    if(match){ const n=parseInt(match[1]),sides=parseInt(match[2]); let rolls=[]; for(let i=0;i<n;i++) rolls.push(1+Math.floor(Math.random()*sides)); msgs.push({sender:'system',type:'system',content:`Rolagem: ${rolls.join(', ')} = ${rolls.reduce((a,b)=>a+b,0)`}); saveData(`msgs_${currentChat.id}`,msgs); loadMessages(); return; }
   }
-  if(text.startsWith('/me')){ msgs.push({sender:'me',type:'text',content:`* ${currentCharacter.name} ${text.slice(3).trim()}`}); saveData(`msgs_${currentChat.id}`,msgs); loadMessages(); return; }
-  msgs.push({sender:'me',type:'text',content:`${currentCharacter.name}: ${text}`}); saveData(`msgs_${currentChat.id}`,msgs); loadMessages();
+  if(text.startsWith('/me')){ msgs.push({sender:'me',type:'text',avatar:currentCharacter.avatar,content:`* ${currentCharacter.name} ${text.slice(3).trim()}`}); saveData(`msgs_${currentChat.id}`,msgs); loadMessages(); return; }
+  msgs.push({sender:'me',type:'text',avatar:currentCharacter.avatar,content:`${currentCharacter.name}: ${text}`}); saveData(`msgs_${currentChat.id}`,msgs); loadMessages();
 }
 
 // Inventory

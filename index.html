@@ -3,177 +3,244 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chat Criativo</title>
+<title>RPG Maker Chat - Offline</title>
 <style>
-  body {
-    margin: 0;
-    font-family: 'Segoe UI', sans-serif;
-    background: linear-gradient(135deg, #6a11cb, #2575fc);
-    color: #fff;
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-  }
-
-  header {
-    padding: 1rem;
-    background: rgba(0,0,0,0.3);
-    text-align: center;
-    font-size: 1.5rem;
-    font-weight: bold;
-  }
-
-  main {
-    display: flex;
-    flex: 1;
-    overflow: hidden;
-  }
-
-  #users {
-    width: 200px;
-    background: rgba(0,0,0,0.2);
-    padding: 1rem;
-    box-sizing: border-box;
-    overflow-y: auto;
-  }
-
-  #users h3 {
-    margin-top: 0;
-  }
-
-  #users ul {
-    list-style: none;
-    padding: 0;
-  }
-
-  #users li {
-    padding: 0.5rem 0;
-    border-bottom: 1px solid rgba(255,255,255,0.2);
-  }
-
-  #chat {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    background: rgba(0,0,0,0.1);
-  }
-
-  #messages {
-    flex: 1;
-    padding: 1rem;
-    overflow-y: auto;
-  }
-
-  .message {
-    margin-bottom: 1rem;
-    padding: 0.5rem 1rem;
-    background: rgba(255,255,255,0.2);
-    border-radius: 10px;
-    max-width: 60%;
-  }
-
-  .message.me {
-    background: #4caf50;
-    align-self: flex-end;
-  }
-
-  form {
-    display: flex;
-    padding: 0.5rem;
-    background: rgba(0,0,0,0.3);
-  }
-
-  input[type="text"] {
-    flex: 1;
-    padding: 0.5rem 1rem;
-    border: none;
-    border-radius: 20px;
-    outline: none;
-  }
-
-  button {
-    margin-left: 0.5rem;
-    padding: 0 1rem;
-    border: none;
-    border-radius: 20px;
-    background: #ff9800;
-    color: #000;
-    font-weight: bold;
-    cursor: pointer;
-  }
-
-  button:hover {
-    background: #e68900;
-  }
+  body { margin:0; font-family:sans-serif; background:#222; color:#fff; display:flex; flex-direction:column; height:100vh; }
+  header { background:#333; padding:1rem; text-align:center; font-size:1.5rem; }
+  main { flex:1; display:flex; overflow:hidden; }
+  #users { width:200px; background:#444; padding:1rem; overflow-y:auto; }
+  #users h3 { margin-top:0; }
+  #chats { flex:1; display:flex; flex-direction:column; background:#222; }
+  #messages { flex:1; padding:1rem; overflow-y:auto; }
+  .message { margin-bottom:0.5rem; padding:0.5rem 1rem; border-radius:10px; max-width:60%; }
+  .me { background:#4caf50; align-self:flex-end; color:#000; }
+  .system { background:#ff9800; color:#000; font-style:italic; }
+  form { display:flex; padding:0.5rem; background:#333; }
+  input[type="text"] { flex:1; padding:0.5rem; border:none; border-radius:20px; }
+  button { margin-left:0.5rem; padding:0.5rem 1rem; border:none; border-radius:20px; background:#ff9800; color:#000; cursor:pointer; }
+  #login, #register, #charCreate, #chatList { position:absolute; top:0; left:0; right:0; bottom:0; background:#222; display:flex; flex-direction:column; justify-content:center; align-items:center; }
+  input, select { padding:0.5rem; margin:0.5rem; border-radius:5px; border:none; }
+  .hidden { display:none; }
 </style>
 </head>
 <body>
 
-<header>💬 Chat Criativo</header>
+<header>RPG Maker Chat - Offline</header>
 
-<main>
+<div id="login">
+  <h2>Login</h2>
+  <input type="email" id="loginEmail" placeholder="Email">
+  <input type="password" id="loginPass" placeholder="Senha">
+  <button onclick="login()">Entrar</button>
+  <p>ou <a href="#" onclick="showRegister()">Registrar</a></p>
+</div>
+
+<div id="register" class="hidden">
+  <h2>Registrar</h2>
+  <input type="text" id="regNick" placeholder="Nick">
+  <input type="email" id="regEmail" placeholder="Email">
+  <input type="password" id="regPass" placeholder="Senha">
+  <input type="file" id="regAvatar">
+  <button onclick="register()">Registrar</button>
+  <p><a href="#" onclick="showLogin()">Voltar ao login</a></p>
+</div>
+
+<div id="chatList" class="hidden">
+  <h2>Chats Disponíveis</h2>
+  <div id="chatButtons"></div>
+</div>
+
+<div id="charCreate" class="hidden">
+  <h2>Criar Personagem</h2>
+  <input type="text" id="charName" placeholder="Nome do personagem">
+  <input type="text" id="charBio" placeholder="História curta">
+  <input type="file" id="charAvatar">
+  <input type="text" id="charPower1" placeholder="Poder 1">
+  <input type="text" id="charPower2" placeholder="Poder 2">
+  <input type="text" id="charPower3" placeholder="Poder 3">
+  <button onclick="createCharacter()">Criar Personagem</button>
+</div>
+
+<main id="chatInterface" class="hidden">
   <div id="users">
-    <h3>Usuários Online</h3>
-    <ul id="userList">
-      <li>Alice</li>
-      <li>Bob</li>
-      <li>Charlie</li>
-    </ul>
+    <h3>Guildas / Tags</h3>
+    <ul id="guildList"></ul>
   </div>
-
-  <div id="chat">
+  <div id="chats">
     <div id="messages"></div>
-    <form id="chatForm">
-      <input type="text" id="messageInput" placeholder="Digite sua mensagem..." autocomplete="off" />
+    <form onsubmit="sendMessage(event)">
+      <input type="text" id="messageInput" placeholder="Digite sua mensagem...">
       <button type="submit">Enviar</button>
     </form>
   </div>
 </main>
 
 <script>
-const form = document.getElementById('chatForm');
-const input = document.getElementById('messageInput');
-const messages = document.getElementById('messages');
+// LocalStorage helpers
+function saveData(key,val){ localStorage.setItem(key,JSON.stringify(val)); }
+function loadData(key){ return JSON.parse(localStorage.getItem(key) || 'null'); }
 
-// Função para adicionar mensagens
-function addMessage(text, isMe = false) {
-  const msg = document.createElement('div');
-  msg.classList.add('message');
-  if(isMe) msg.classList.add('me');
-  msg.textContent = text;
-  messages.appendChild(msg);
-  messages.scrollTop = messages.scrollHeight;
-}
+// Usuário atual
+let currentUser = null;
+let currentChat = null;
+let currentCharacter = null;
 
-// Simular algumas mensagens automáticas
-const autoMessages = [
-  "Bem-vindo ao chat!",
-  "Aqui você pode conversar com amigos fictícios.",
-  "Experimente digitar algo."
+// Chats iniciais
+const chats = [
+  {id:'off', name:'Off Chat', type:'off', lore:'Chat geral para todos.'},
+  {id:'forest', name:'Floresta Encantada', type:'rpg', lore:'Floresta mágica com elfos e criaturas.'},
+  {id:'castle', name:'Castelo Negro', type:'rpg', lore:'Um castelo antigo cheio de mistérios.'},
+  {id:'cave', name:'Caverna Abissal', type:'rpg', lore:'Caverna escura com monstros e tesouros.'}
 ];
 
-let i = 0;
-setInterval(() => {
-  if(i < autoMessages.length) {
-    addMessage(autoMessages[i]);
-    i++;
-  }
-}, 1500);
+// Guildas iniciais
+const guilds = [{name:'Ordem dos Magos', tag:'MAG', leaders:['admin']}];
 
-// Enviar mensagem do usuário
-form.addEventListener('submit', (e) => {
+function showRegister(){ document.getElementById('login').classList.add('hidden'); document.getElementById('register').classList.remove('hidden'); }
+function showLogin(){ document.getElementById('register').classList.add('hidden'); document.getElementById('login').classList.remove('hidden'); }
+
+function register(){
+  const nick=document.getElementById('regNick').value;
+  const email=document.getElementById('regEmail').value;
+  const pass=document.getElementById('regPass').value;
+  const avatar=document.getElementById('regAvatar').files[0];
+  if(!nick||!email||!pass){ alert('Preencha todos os campos'); return; }
+  const users = loadData('users') || [];
+  if(users.find(u=>u.email===email)){ alert('Email já registrado'); return; }
+  const reader = new FileReader();
+  reader.onload = function(e){
+    users.push({nick,email,pass,avatar:e.target.result});
+    saveData('users',users);
+    alert('Registrado com sucesso!');
+    showLogin();
+  };
+  if(avatar) reader.readAsDataURL(avatar);
+  else { users.push({nick,email,pass,avatar:null}); saveData('users',users); showLogin(); }
+}
+
+function login(){
+  const email=document.getElementById('loginEmail').value;
+  const pass=document.getElementById('loginPass').value;
+  const users = loadData('users') || [];
+  const user = users.find(u=>u.email===email && u.pass===pass);
+  if(!user){ alert('Email ou senha incorretos'); return; }
+  currentUser = user;
+  showChatList();
+}
+
+function showChatList(){
+  document.getElementById('login').classList.add('hidden');
+  document.getElementById('register').classList.add('hidden');
+  document.getElementById('chatList').classList.remove('hidden');
+  const container = document.getElementById('chatButtons');
+  container.innerHTML = '';
+  chats.forEach(c=>{
+    const btn = document.createElement('button');
+    btn.textContent = c.name;
+    btn.onclick = ()=>enterChat(c);
+    container.appendChild(btn);
+  });
+}
+
+function enterChat(chat){
+  currentChat = chat;
+  if(chat.type==='rpg'){
+    const charData = loadData(`char_${chat.id}_${currentUser.email}`);
+    if(!charData){ showCharacterCreation(chat); return; }
+    currentCharacter = charData;
+  } else { currentCharacter = {name:currentUser.nick, avatar:currentUser.avatar}; }
+  openChatInterface();
+}
+
+function showCharacterCreation(chat){
+  document.getElementById('chatList').classList.add('hidden');
+  document.getElementById('charCreate').classList.remove('hidden');
+}
+
+function createCharacter(){
+  const name=document.getElementById('charName').value;
+  const bio=document.getElementById('charBio').value;
+  const avatarFile=document.getElementById('charAvatar').files[0];
+  const powers=[
+    document.getElementById('charPower1').value,
+    document.getElementById('charPower2').value,
+    document.getElementById('charPower3').value
+  ].filter(p=>p);
+  if(!name){ alert('Nome obrigatório'); return; }
+  const reader=new FileReader();
+  reader.onload=function(e){
+    const charData = {name,bio,avatar:e.target.result,powers,items:[],weapons:[],xp:0};
+    saveData(`char_${currentChat.id}_${currentUser.email}`,charData);
+    currentCharacter = charData;
+    openChatInterface();
+  };
+  if(avatarFile) reader.readAsDataURL(avatarFile);
+  else { const charData = {name,bio,avatar:null,powers,items:[],weapons:[],xp:0}; saveData(`char_${currentChat.id}_${currentUser.email}`,charData); currentCharacter=charData; openChatInterface(); }
+}
+
+function openChatInterface(){
+  document.getElementById('charCreate').classList.add('hidden');
+  document.getElementById('chatList').classList.add('hidden');
+  document.getElementById('chatInterface').classList.remove('hidden');
+  loadGuilds();
+  loadMessages();
+}
+
+function loadGuilds(){
+  const list = document.getElementById('guildList');
+  list.innerHTML='';
+  guilds.forEach(g=>{
+    const li = document.createElement('li');
+    li.textContent = `[${g.tag}] ${g.name}`;
+    list.appendChild(li);
+  });
+}
+
+function loadMessages(){
+  const msgs = loadData(`msgs_${currentChat.id}`) || [];
+  const container = document.getElementById('messages');
+  container.innerHTML='';
+  msgs.forEach(m=>{
+    const div=document.createElement('div');
+    div.classList.add('message');
+    if(m.sender==='me') div.classList.add('me');
+    if(m.type==='system') div.classList.add('system');
+    div.textContent=m.content;
+    container.appendChild(div);
+  });
+  container.scrollTop = container.scrollHeight;
+}
+
+function sendMessage(e){
   e.preventDefault();
-  const text = input.value.trim();
-  if(text) {
-    addMessage(text, true);
-    input.value = '';
-    // Resposta automática divertida
-    setTimeout(() => {
-      addMessage("🤖 Resposta automática para: " + text);
-    }, 1000);
-  }
-});
-</script>
+  const input=document.getElementById('messageInput');
+  const text=input.value.trim();
+  if(!text) return;
+  handleCommand(text);
+  input.value='';
+}
 
+function handleCommand(text){
+  const msgs = loadData(`msgs_${currentChat.id}`) || [];
+  if(text.startsWith('/openbau')){
+    msgs.push({sender:'system',type:'system',content:'Abrindo baú...'});
+    saveData(`msgs_${currentChat.id}`,msgs);
+    loadMessages();
+    setTimeout(()=>{
+      const item = 'Espada Lendária';
+      currentCharacter.items.push(item);
+      saveData(`char_${currentChat.id}_${currentUser.email}`,currentCharacter);
+      msgs.push({sender:'system',type:'system',content:`Você ganhou: ${item}`});
+      saveData(`msgs_${currentChat.id}`,msgs);
+      loadMessages();
+    },1500);
+    return;
+  }
+  const msgs2 = loadData(`msgs_${currentChat.id}`) || [];
+  msgs2.push({sender:'me',type:'text',content:`${currentCharacter.name}: ${text}`});
+  saveData(`msgs_${currentChat.id}`,msgs2);
+  loadMessages();
+}
+</script>
 </body>
 </html>
